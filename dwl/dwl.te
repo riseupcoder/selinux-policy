@@ -1,0 +1,6 @@
+policy_module(dwl, 1.0)
+
+attribute_role dwl_roles;
+
+type dwl_exec_t;
+type dwl_tmpfs_t;

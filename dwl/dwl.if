@@ -1,0 +1,69 @@
+## <summary>Policy for the dwl Wayland compositor.</summary>
+
+########################################
+## <summary>
+##	Role access for dwl.
+## </summary>
+## <param name="role_prefix">
+##	<summary>
+##	The prefix of the user role (e.g., user
+##	is the prefix for user_r).
+##	</summary>
+## </param>
+## <param name="user_domain">
+##	<summary>
+##	User domain for the role.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access
+##	</summary>
+## </param>
+#
+template(`dwl_role',`
+	gen_require(`
+		attribute_role dwl_roles;
+		type dwl_exec_t;
+                type cache_home_t;
+	')
+
+	type $1_dwl_t;
+	# Even though dwl instances for different user types are separated by the
+	# $1_ prefix before their domain, making separate domains, we still want
+	# the various dwl instances to be ubac constrained for other various file
+	# types.
+	userdom_user_application_domain($1_dwl_t, dwl_exec_t)
+	wayland_compositor_domain($1_dwl_t)
+
+        manage_dirs_pattern($1_dwl_t, cache_home_t, cache_home_t)
+        manage_files_pattern($1_dwl_t, cache_home_t, cache_home_t)
+        manage_lnk_files_pattern($1_dwl_t, cache_home_t, cache_home_t)
+
+	domtrans_pattern($2, dwl_exec_t, $1_dwl_t)
+
+	roleattribute $3 dwl_roles;
+	role $3 types { $1_dwl_t };
+
+	type $1_dwl_tmpfs_t;
+	userdom_user_tmp_file($1_dwl_tmpfs_t)
+	wayland_compositor_tmpfs($1_dwl_tmpfs_t)
+
+	manage_files_pattern($1_dwl_t, $1_dwl_tmpfs_t, $1_dwl_tmpfs_t)
+	allow $1_dwl_t $1_dwl_tmpfs_t:file map;
+	fs_tmpfs_filetrans($1_dwl_t, $1_dwl_tmpfs_t, file)
+
+	kernel_read_system_state($1_dwl_t)
+
+        # dwl can execute shell commands through SHCMD() and the -s startup command.
+	corecmd_shell_domtrans($1_dwl_t, $2)
+
+        optional_policy(`
+            seatd_stream_connect($1_dwl_t);
+        ')
+
+	allow $2 $1_dwl_tmpfs_t:dir { manage_dir_perms relabel_dir_perms };
+	allow $2 $1_dwl_tmpfs_t:file { manage_file_perms relabel_file_perms };
+	allow $2 $1_dwl_tmpfs_t:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
+	allow $2 $1_dwl_tmpfs_t:sock_file { manage_sock_file_perms relabel_sock_file_perms };
+')

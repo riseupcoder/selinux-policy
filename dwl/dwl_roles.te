@@ -1,0 +1,9 @@
+policy_module(dwl_roles, 1.0)
+
+require {
+    type user_t;
+
+    role user_r;
+}
+
+dwl_role(user, user_t, user_r)

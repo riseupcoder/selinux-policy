@@ -1,0 +1,32 @@
+module user_dwl 1.0;
+
+require {
+        type user_dwl_t;
+
+        type user_t;
+	type user_tty_device_t;
+	type cache_home_t;
+
+        type container_file_t;
+
+	type fs_t;
+        type tmpfs_t;
+
+	class file { read write map };
+	class chr_file { getattr read write ioctl };
+	class netlink_kobject_uevent_socket { create setopt bind getattr getopt };
+        class filesystem getattr;
+        class process { setsched };
+}
+
+
+#============= user_sway_t ==============
+
+allow user_dwl_t user_tty_device_t:chr_file { getattr read write ioctl };
+allow user_dwl_t self:netlink_kobject_uevent_socket { create setopt bind getattr getopt };
+allow user_dwl_t container_file_t:file { read write map };
+allow user_dwl_t tmpfs_t:file { read write map };
+allow user_dwl_t cache_home_t:file map;
+dontaudit user_dwl_t self:process setsched;
+
+wayland_client_domain(user_t);
