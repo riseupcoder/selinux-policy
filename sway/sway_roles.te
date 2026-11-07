@@ -8,8 +8,5 @@ require {
     role staff_r;
 }
 
-
 sway_role(user, user_t, user_r)
-
 sway_role(staff, staff_t, staff_r)
-

@@ -26,6 +26,7 @@ template(`dwl_role',`
 		attribute_role dwl_roles;
 		type dwl_exec_t;
                 type cache_home_t;
+		type kmscon_devpts_t;
 	')
 
 	type $1_dwl_t;
@@ -66,4 +67,18 @@ template(`dwl_role',`
 	allow $2 $1_dwl_tmpfs_t:file { manage_file_perms relabel_file_perms };
 	allow $2 $1_dwl_tmpfs_t:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
 	allow $2 $1_dwl_tmpfs_t:sock_file { manage_sock_file_perms relabel_sock_file_perms };
+
+        # cache
+        allow $1_dwl_t cache_home_t:file map;
+
+        dontaudit $1_dwl_t self:process setsched;
+
+        allow $1_dwl_t self:netlink_kobject_uevent_socket { create setopt bind getattr getopt };
+
+        # kmscon
+        allow $1_dwl_t kmscon_devpts_t:chr_file { getattr read write ioctl };
+
+        optional_policy(`
+		wayland_client_domain($2)
+	')
 ')
